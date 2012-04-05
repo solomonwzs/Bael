@@ -7,11 +7,7 @@ get_value([], Value)->
 	Value;
 get_value([Head|Tail], {struct, ValueList})->
 	try
-		Key=if
-			is_binary(Head)->Head;
-			is_atom(Head)->atom_to_binary(Head, utf8);
-			is_list(Head)->list_to_binary(Head)
-		end,
+		Key=thing_to_binary(Head),
 		Value=proplists:get_value(Key, ValueList),
 		get_value(Tail, Value)
 	catch
@@ -25,5 +21,30 @@ get_value([Head|Tail], {struct, ValueList})->
 			Type(get_struct_value_failed)
 	end.
 
-set_value([Head|Tail], {struct, ValueList})->
-	ok.
+set_value([Head|Tail], NewValue, {struct, ValueList})->
+	try
+		Key=thing_to_binary(Head),
+		Value=proplists:get_value(Key, ValueList),
+		if
+			Value=:=undefined->throw("invalid_key");
+			Tail=:=[]->
+				lists:append(proplists:delete(Key, ValueList),
+				 {Key, thing_to_binary(NewValue)})
+	 	end
+	catch
+		Type:What->
+			Report=["set struct value failed",
+			 {key, Head},
+		 	 {type, Type},
+		 	 {what, What},
+		 	 {trace, erlang:get_stacktrace()}],
+		 	error_logger:error_report(Report),
+			Type(set_struct_value_failed)
+	end.
+
+thing_to_binary(P)->
+	if
+		is_binary(P)->P;
+		is_atom(P)->atom_to_binary(P, utf8);
+		is_list(P)->list_to_binary(P)
+	end.

@@ -5,7 +5,7 @@ ajax_test('POST', Req)->
 	PostData=Req:parse_post(),
 	Json=proplists:get_value("json", PostData),
 	Struct=mochijson2:decode(Json),
-	io:format("~p~n", [Struct]),
+	io:format("~p~n~p~n", [Struct, Json]),
 	io:format("~p~n", [bael_struct:get_value([people], Struct)]),
 	Req:ok({"application/json", [], [Json]}).
 
