@@ -1,0 +1,23 @@
+body
+{
+	font-family:WenQuanYi Zen Hei, Arial,Helvetica, Microsoft YaHei, 
+	 YouYuan, sans-serif;
+}
+body, table
+{
+	font-size:13px;
+}
+table
+{
+	border-collapse:collapse;
+}
+table tr
+{
+	border:solid 1px #000;
+}
+table td, table th
+{
+	border:solid 1px #000;
+	padding:2px 10px;
+	text-align:center;
+}
