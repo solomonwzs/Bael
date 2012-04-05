@@ -2,7 +2,7 @@ $(function()
 {
 	var json={
 		action:'test',
-		person:{
+		people:{
 			id:0,
 			name:'nobody'
 		}
