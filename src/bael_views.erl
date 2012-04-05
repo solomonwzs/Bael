@@ -1,4 +1,5 @@
 -module(bael_views).
+-include("bael_mysql.hrl").
 -export([test/2, hello/2, ajax_test/2]).
 
 ajax_test('POST', Req)->
@@ -12,7 +13,7 @@ ajax_test('POST', Req)->
 test('GET', Req)->
 	QueryStringData=Req:parse_qs(),
 	TableName=proplists:get_value("tablename", QueryStringData, 
-	 "AccountProfile"),
+	 ?DB_DEFAULT_TABLE),
 	Page=list_to_integer(proplists:get_value("page", QueryStringData, "1")),
 	Num=list_to_integer(proplists:get_value("num", QueryStringData, "50")),
 	DataTable=emysql:execute(db_test, 

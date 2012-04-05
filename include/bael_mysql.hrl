@@ -1,5 +1,7 @@
 -define(DB_USER_NAME, "root").
--define(DB_PASSWORD, "root").
--define(DB_HOSTNAME, "192.168.1.131").
+-define(DB_PASSWORD, "*").
+-define(DB_HOSTNAME, "localhost").
+-define(DB_DEFAULT_DB, "mysql").
+-define(DB_DEFAULT_TABLE, "db").
 -define(DB_PORT, 3306).
 -define(DB_CONN_NUM, 10).
