@@ -44,9 +44,11 @@ upgrade() ->
 %% @doc supervisor callback.
 init([]) ->
     Web = web_specs(bael_web, ?HTTP_PORT),
-    WorkerSup={bael_worker_sup, {bael_worker_sup, start_link, []},
+    ServerSup={bael_server_sup, {bael_server_sup, start_link, []},
 	 permanent, 5000, supervisor, dynamic},
-    Processes = [Web, WorkerSup],
+    FsmSup={bael_fsm_sup, {bael_fsm_sup, start_link, []},
+	 permanent, 5000, supervisor, dynamic},
+    Processes = [Web, ServerSup, FsmSup],
     Strategy = {one_for_one, 10, 10},
     {ok,
      {Strategy, lists:flatten(Processes)}}.

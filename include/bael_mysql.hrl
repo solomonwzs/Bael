@@ -1,5 +1,5 @@
--define(DB_USER_NAME, "root").
--define(DB_PASSWORD, "*").
+-define(DB_USER_NAME, "solomon").
+-define(DB_PASSWORD, "19881218").
 -define(DB_HOSTNAME, "localhost").
 -define(DB_DEFAULT_DB, "mysql").
 -define(DB_DEFAULT_TABLE, "db").

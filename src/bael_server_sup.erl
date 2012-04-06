@@ -1,4 +1,4 @@
--module(bael_worker_sup).
+-module(bael_server_sup).
 -behaviour(supervisor).
 -include("bael.hrl").
 
@@ -13,7 +13,7 @@ upgrade()->
 
 init([])->
 	Strategy={one_for_one, 10, 10},
-	SpecsList=[{lists:concat(["worker_", ID]), {bael_worker, start_link, []},
+	SpecsList=[{lists:concat(["server_", ID]), {bael_server, start_link, []},
 	 permanent, 5000, worker, dynamic}||
- 	 ID<-lists:seq(0, ?MAX_WORKERS_POOL_SIZE-1)],
+ 	 ID<-lists:seq(0, ?MAX_SERVERS_POOL_SIZE-1)],
  	{ok, {Strategy, lists:flatten(SpecsList)}}.

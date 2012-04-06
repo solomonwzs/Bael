@@ -1,4 +1,4 @@
--module(bael_worker).
+-module(bael_server).
 -behaviour(gen_server).
 -include("bael.hrl").
 -export([start_link/0]).
@@ -9,7 +9,7 @@ start_link()->
 	gen_server:start_link(?MODULE, [], []).
 
 init([])->
-	{ok, #bael_worker_state{}}.
+	{ok, #worker_state{}}.
 
 handle_call(_Msg, _From, State)->
 	{reply, reply, State}.
