@@ -13,6 +13,11 @@
 	pid
 }).
 
+-record(fsm_state, {
+	pid,
+	state
+}).
+
 -record(error_message, {
 	type=undefined,
 	what=undefined,
