@@ -21,6 +21,7 @@ ensure_started(App) ->
 %% @doc Start the bael server.
 start() ->
     bael_deps:ensure(),
+	ensure_started(inets),
     ensure_started(crypto),
     ensure_started(emysql),
 	init_db_conn(),
@@ -30,8 +31,9 @@ start() ->
 %% @spec stop() -> ok
 %% @doc Stop the bael server.
 stop() ->
-	application:stop(emysql),
-    application:stop(bael).
+	application:stop(bael),
+    application:stop(emysql),
+	application:stop(inets).
     
     
 init_db_conn()->

@@ -8,7 +8,7 @@ ajax_test('POST', Req)->
 %	Struct=mochijson2:decode(Json),
 %	NewStruct=bael_struct:set_value([person, name], jack, Struct),
 %	io:format("~p~n~p~n", [Struct, NewStruct]),
-	Req:ok({"application/json", [], [Json]}).
+	Req:ok({"application/json", [], [Json]}). 
 
 test('GET', Req)->
 	QueryStringData=Req:parse_qs(),

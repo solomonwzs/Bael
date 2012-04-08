@@ -4,7 +4,7 @@ DEST:=$(PREFIX)$(PROJECT)
 
 REBAR=./rebar
 
-all:
+all:js
 	@$(REBAR) get-deps compile
 
 edoc:
@@ -27,3 +27,8 @@ dialyzer:
 app:
 	@$(REBAR) create template=mochiwebapp dest=$(DEST) appid=$(PROJECT)
 
+js:
+	@wget -nc http://code.jquery.com/jquery.min.js \
+		-P ./priv/www/resoure/js/jquery/
+	-git clone git://github.com/douglascrockford/JSON-js.git \
+		./priv/www/resoure/js/JSON-js
