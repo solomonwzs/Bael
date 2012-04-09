@@ -5,7 +5,7 @@
 -define(MATH_XML_ELEMENTS_LIST, bael_xml_dict_key_0).
 -define(XML_ELEMENT_LIST, bael_xml_dict_key_1).
 -define(XML_TEXT_LIST, bael_xml_dict_key_2).
--define(TEST_XML_DATA, "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
+-define(TEST_XML_STRING, "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
 	<configuration>
 		<application id=\"test\">
 			<platform id=\"vk\">
@@ -25,7 +25,7 @@
 	</configuration>").
 
 test()->
-	Ret=get_elements([configuration, appId], 3, ?TEST_XML_DATA),
+	Ret=get_elements([configuration, appId], 3, ?TEST_XML_STRING),
 	if
 		Ret=:=[#xml_element{
 			tag_name=appId,

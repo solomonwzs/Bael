@@ -9,8 +9,15 @@
 	{"^ajax_test/?$", ajax_test}
 ]).
 
+-record(xml_element, {
+	tag_name=undefined,
+	parents=[],
+	attr=[],
+	value= <<>>
+}).
+
 -record(worker_state, {
-	pid
+	pid=self()
 }).
 
 -record(fsm_state, {
