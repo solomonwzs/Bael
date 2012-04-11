@@ -44,7 +44,7 @@ code_change(_OldVsn, _StateName, StateData, _Extra)->
 idle({timeout, _Ref, Msg}, StateData)->
 	io:format("handle start_timer: ~p~n", [Msg]),
 	io:format("fsm(~p) state: idle~n", [self()]),
-	{next_state, idle, StateData};
+	{next_state, work, StateData, 5000};
 idle(Event, StateData)->
 	io:format("handle send_event: ~p~n", [Event]),
 	io:format("fsm(~p) state: idle~n", [self()]),
@@ -55,12 +55,15 @@ idle(Event, From, StateData)->
 	io:format("fsm(~p) state: idle~n", [self()]),
 	{reply, {self(), reply}, idle, StateData}.
 
+work(timeout, StateDate)->
+	io:format("fsm(~p) finish work~n", [self()]),
+	{next_state, idle, StateDate};
 work(Event, StateData)->
 	io:format("handle send_event: ~p~n", [Event]),
 	io:format("fsm(~p) state: work~n", [self()]),
-	{next_state, idle, StateData}.
+	{next_state, work, StateData}.
 
 work(Event, From, StateData)->
 	io:format("handle sync_send_event(from ~p): ~p~n", [From, Event]),
 	io:format("fsm(~p) state: work~n", [self()]),
-	{reply, {self(), reply}, idle, StateData}.
+	{reply, {self(), reply}, work, StateData}.
