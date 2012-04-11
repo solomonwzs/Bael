@@ -104,8 +104,7 @@ filter_xml_content([])->
 	ok;
 filter_xml_content(Content)->
 	[Head|Tail]=Content,
-	[Type|_]=tuple_to_list(Head),
-	Key=case Type of
+	Key=case hd(tuple_to_list(Head)) of
 		xmlText->?XML_TEXT_LIST;
 		xmlElement->?XML_ELEMENT_LIST
 	end,
