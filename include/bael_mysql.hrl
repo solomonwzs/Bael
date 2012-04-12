@@ -1,7 +1,7 @@
 -define(DB_USER_NAME, "solomon").
 -define(DB_PASSWORD, "19881218").
 -define(DB_HOSTNAME, "localhost").
--define(DB_DEFAULT_DB, "mysql").
+-define(DB_DEFAULT_DB, "test").
 -define(DB_DEFAULT_TABLE, "db").
 -define(DB_PORT, 3306).
--define(DB_CONN_NUM, 10).
+-define(DB_CONN_NUM, 1).

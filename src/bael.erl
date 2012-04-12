@@ -24,6 +24,7 @@ start() ->
 	ensure_started(inets),
     ensure_started(crypto),
     ensure_started(emysql),
+	ensure_started(odbc),
 	init_db_conn(),
     application:start(bael).
 
@@ -32,6 +33,7 @@ start() ->
 %% @doc Stop the bael server.
 stop() ->
 	application:stop(bael),
+	application:stop(odbc),
     application:stop(emysql),
 	application:stop(inets).
     
