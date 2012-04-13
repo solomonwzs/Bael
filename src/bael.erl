@@ -25,6 +25,8 @@ start() ->
     ensure_started(crypto),
     ensure_started(emysql),
 	ensure_started(odbc),
+	mnesia:create_schema([node()]),
+	ensure_started(mnesia),
 	init_db_conn(),
     application:start(bael).
 
@@ -33,6 +35,8 @@ start() ->
 %% @doc Stop the bael server.
 stop() ->
 	application:stop(bael),
+	application:stop(mnesia),
+	mnesia:delete_schema([node()]),
 	application:stop(odbc),
     application:stop(emysql),
 	application:stop(inets).

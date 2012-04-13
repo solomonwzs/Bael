@@ -1,6 +1,6 @@
 -module(bael_xml).
 -include("bael.hrl").
--export([test/0, get_elements/2]).
+-export([get_elements/2]).
 	
 -define(MATH_XML_ELEMENTS_LIST, bael_xml_dict_key_0).
 -define(XML_ELEMENT_LIST, bael_xml_dict_key_1).
@@ -24,18 +24,18 @@
 		</application>
 	</configuration>").
 
-test()->
-	Ret=get_elements([configuration, appId], 3, ?TEST_XML_STRING),
-	if
-		Ret=:=[#xml_element{
-			tag_name=appId,
-			parents=[application, configuration],
-			attr=[],
-			value= <<"321">>
-		}]->
-			ok;
-		true->Ret
-	end.
+%test()->
+%	Ret=get_elements([configuration, appId], 3, ?TEST_XML_STRING),
+%	if
+%		Ret=:=[#xml_element{
+%			tag_name=appId,
+%			parents=[application, configuration],
+%			attr=[],
+%			value= <<"321">>
+%		}]->
+%			ok;
+%		true->Ret
+%	end.
 
 get_elements(Tags, XmlString) when is_list(XmlString)->
 	get_elements(Tags, null, XmlString);

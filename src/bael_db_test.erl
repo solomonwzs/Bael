@@ -1,7 +1,8 @@
 -module(bael_db_test).
--export([db_test/0]).
+-export([mysql_test/0, mnesia_test/0]).
 -export([odbc_write_test/2, odbc_read_test/2, odbc_update_test/2]).
 -export([emysql_write_test/1, emysql_read_test/1, emysql_update_test/1]).
+-export([mnesia_write_test/1, mnesia_read_test/1]).
 -include("bael_mysql.hrl").
 -define(MAX_TABLE_ROWS, 100).
 -define(CREATE_TEST_TABLE, "
@@ -13,8 +14,11 @@
 	)
 	COLLATE='utf8_general_ci'
 	ENGINE=InnoDB;").
+-record(test_record,{
+	id, name, pid
+}).
 
-db_test()->
+mysql_test()->
 	{ok, Conn}=odbc:connect("DSN=bael_local", []),
 	{selected, _, [{Count}]}=odbc:sql_query(Conn, lists:concat(["
 		select count(*) from 
@@ -48,77 +52,100 @@ db_test()->
 	odbc:disconnect(Conn).
 
 odbc_write_test(Conn, Num)->
-	case Num of
-		0->finish;
-		_->
-			Sql=lists:concat([
-				"insert into bael_test(name, pid) value('",
-					"odbc_", Num, "', '", pid_to_list(Conn), "'
-				)"
-		 	]),
-			odbc:sql_query(Conn, Sql),
-			odbc_write_test(Conn, Num-1)
-	end.
+	F=fun(N)->
+		Sql=lists:concat([
+			"insert into bael_test(name, pid) value('",
+				"odbc_", N, "', '", pid_to_list(Conn), "'
+			)"
+		]),
+		odbc:sql_query(Conn, Sql)
+	end,
+	lists:foreach(F, lists:seq(1, Num)).
 
 emysql_write_test(Num)->
-	case Num of
-		0->finish;
-		_->
-			Sql=lists:concat([
-				"insert into bael_test(name, pid) value('",
-					"emysql_", Num, "', '", pid_to_list(self()), "'
-				)"
-		 	]),
-			emysql:execute(db_test, list_to_binary(Sql)),
-			emysql_write_test(Num-1)
-	end.
+	F=fun(N)->
+		Sql=lists:concat([
+			"insert into bael_test(name, pid) value('",
+				"emysql_", N, "', '", pid_to_list(self()), "'
+			)"
+		]),
+		emysql:execute(db_test, Sql)
+	end,
+	lists:foreach(F, lists:seq(1, Num)).
 
 odbc_read_test(Conn, Num)->
-	case Num of
-		0->finish;
-		_->
-			Sql=lists:concat([
-				"select * from bael_test 
-					where name='", "odbc_", Num, "'"
-			]),
-			odbc:sql_query(Conn, Sql),
-			odbc_read_test(Conn, Num-1)
-	end.
+	F=fun(N)->
+		Sql=lists:concat([
+			"select * from bael_test 
+				where name='", "odbc_", N, "'"
+		]),
+		odbc:sql_query(Conn, Sql)
+	end,
+	lists:foreach(F, lists:seq(1, Num)).
 
 emysql_read_test(Num)->
-	case Num of
-		0->finish;
-		_->
-			Sql=lists:concat([
-				"select * from bael_test 
-					where name='", "emysql_", Num, "'"
-			]),
-			emysql:execute(db_test, list_to_binary(Sql)),
-			emysql_read_test(Num-1)
-	end.
+	F=fun(N)->
+		Sql=lists:concat([
+			"select * from bael_test 
+				where name='", "emysql_", N, "'"
+		]),
+		emysql:execute(db_test, Sql)
+	end,
+	lists:foreach(F, lists:seq(1, Num)).
 
 odbc_update_test(Conn, Num)->
-	case Num of
-		0->finish;
-		_->
-			Sql=lists:concat([
-				"update bael_test set
-					pid=concat(pid, '-update')
-				where name='odbc_", Num, "'"
-			]),
-			odbc:sql_query(Conn, Sql),
-			odbc_update_test(Conn, Num-1)
-	end.
+	F=fun(N)->
+		Sql=lists:concat([
+			"update bael_test set
+				pid=concat(pid, '-update')
+			where name='odbc_", N, "'"
+		]),
+		odbc:sql_query(Conn, Sql)
+	end,
+	lists:foreach(F, lists:seq(1, Num)).
 
 emysql_update_test(Num)->
-	case Num of
-		0->finish;
-		_->
-			Sql=lists:concat([
-				"update bael_test set
-					pid=concat(pid, '-update')
-				where name='emysql_", Num, "'"
-			]),
-			emysql:execute(db_test, list_to_binary(Sql)),
-			emysql_update_test(Num-1)
-	end.
+	F=fun(N)->
+		Sql=lists:concat([
+			"update bael_test set
+				pid=concat(pid, '-update')
+			where name='emysql_", N, "'"
+		]),
+		emysql:execute(db_test, Sql)
+	end,
+	lists:foreach(F, lists:seq(1, Num)).
+
+mnesia_test()->
+	mnesia:delete_table(db_test_mnesia),
+	Res=mnesia:create_table(db_test_mnesia, [
+		{disc_only_copies, [node()]},
+		{attributes, record_info(fields, test_record)},
+		{record_name, test_record}
+	]),
+	io:format("mnesia test start...~p~n", [Res]),
+	{T0, _}=timer:tc(?MODULE, mnesia_write_test, [?MAX_TABLE_ROWS]),
+	io:format("write times:~p, case time:~p~n", [?MAX_TABLE_ROWS, T0]),
+	{T1, _}=timer:tc(?MODULE, mnesia_read_test, [?MAX_TABLE_ROWS]),
+	io:format("read times:~p, case time:~p~n", [?MAX_TABLE_ROWS, T1]),
+	io:format("mnesia test finish.~n").
+
+mnesia_write_test(Num)->
+	F=fun(N)->
+		R=#test_record{
+			id=now(),
+			name=lists:concat(["mnesta_", N]),
+			pid=self()
+		},
+		mnesia:dirty_write(db_test_mnesia, R)
+	end,
+	lists:foreach(F, lists:seq(1, Num)).
+
+mnesia_read_test(Num)->
+	F=fun(N)->
+		mnesia:dirty_select(db_test_mnesia, [{
+			#test_record{name='$1', _='_'},
+			[{'==', '$1', lists:concat(["mnesia_", N])}],
+			['$_']
+		}])
+	end,
+	lists:foreach(F, lists:seq(1, Num)).
