@@ -3,8 +3,6 @@
 -export([get_elements/2]).
 	
 -define(MATH_XML_ELEMENTS_LIST, bael_xml_dict_key_0).
--define(XML_ELEMENT_LIST, bael_xml_dict_key_1).
--define(XML_TEXT_LIST, bael_xml_dict_key_2).
 -define(TEST_XML_STRING, "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
 	<configuration>
 		<application id=\"test\">
@@ -47,23 +45,22 @@ get_elements(Tags, Depth, XmlString) when is_list(XmlString)->
 	get_elements(Tags, Depth, Element);
 get_elements(Tags, Depth, XmlElement)->
 	erlang:put(?MATH_XML_ELEMENTS_LIST, []),
-	save_elements_to_dict(Tags, Depth, XmlElement),
+	save_elements_to_dict({Tags, Depth, XmlElement}),
 	erlang:get(?MATH_XML_ELEMENTS_LIST).
 
-save_elements_to_dict(Tags, Depth, XmlElement)->
+save_elements_to_dict({Tags, Depth, XmlElement})->
 	{xmlElement, Tag, _, _, _, Parents, _, Attrs, Content, _, _, _}=XmlElement,
 	ParentsList=process_parents(Parents),
 	Length=length(ParentsList)+1,
 	if
 		Depth=:=null orelse Depth>=Length->
-			erlang:put(?XML_TEXT_LIST, []),
-			erlang:put(?XML_ELEMENT_LIST, []),
-			filter_xml_content(Content),
+			{TextList, ElementList}=
+			 lists:foldl(fun filter_xml_content/2, {[], []}, Content),
 			Element=#xml_element{
 				tag_name=Tag,
 				parents=ParentsList,
 				attr=process_attrs(Attrs),
-				value=list_to_binary(process_text(erlang:get(?XML_TEXT_LIST)))
+				value=list_to_binary(process_text(TextList))
 			},
 			[Head|Tail]=lists:reverse(Tags),
 			Math=math_tags_list(Tail, ParentsList),
@@ -74,8 +71,8 @@ save_elements_to_dict(Tags, Depth, XmlElement)->
 					 lists:append(MathElementsList, [Element]));
 				true->not_math
 			end,
-			[save_elements_to_dict(Tags, Depth, X)||
-			 X<-erlang:get(?XML_ELEMENT_LIST)];
+	 		lists:foreach(fun save_elements_to_dict/1,
+			 [{Tags, Depth, X}||X<-ElementList]);
 		true->ok
 	end.
 
@@ -100,17 +97,15 @@ process_attrs(Attrs)->
 	{xmlAttribute, Key, _, _, _, _, _, _, Value, _}=Head,
 	[{Key, Value}|process_attrs(Tail)].
 
-filter_xml_content([])->
-	ok;
-filter_xml_content(Content)->
-	[Head|Tail]=Content,
-	Key=case hd(tuple_to_list(Head)) of
-		xmlText->?XML_TEXT_LIST;
-		xmlElement->?XML_ELEMENT_LIST
-	end,
-	L=erlang:get(Key),
-	erlang:put(Key, lists:append(L, [Head])),
-	filter_xml_content(Tail).
+filter_xml_content(Content, {TextList, ElementList})->
+	case hd(tuple_to_list(Content)) of
+		xmlText->
+			List=lists:append(TextList, [Content]),
+			{List, ElementList};
+		xmlElement->
+			List=lists:append(ElementList, [Content]),
+			{TextList, List}
+	end.
 
 math_tags_list([], _Parents)->
 	true;
