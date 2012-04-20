@@ -14,7 +14,7 @@ init([])->
 handle_event(test_timer, StateName, StateData)->
 	io:format("handle send_all_state_event: ~p~n", [test_timer]),
 	io:format("fsm(~p) state: ~p~n", [self(), StateName]),
-	gen_fsm:start_timer(1000, hello),
+	gen_fsm:start_timer(3000, hello),
 	{next_state, idle, StateData};
 handle_event(just_test, StateName, StateData)->
 	io:format("handle send_all_state_event: ~p~n", [just_test]),
@@ -27,10 +27,13 @@ handle_sync_event(just_test, From, StateName, StateData)->
 	io:format("handle sync_send_all_state_event(from: ~p): ~p~n", 
 	 [From, just_test]),
 	io:format("fsm(~p) state: ~p~n", [self(), StateName]),
-	{reply, {self(), reply}, idle, StateData, hibernate};
-handle_sync_event(_Event, _From, _StateName, StateData)->
+	{reply, {self(), reply}, StateName, StateData, hibernate};
+handle_sync_event(test_timeout, _From, StateName, StateData)->
+	timer:sleep(2000),
+	{reply, {self(), StateName}, StateName, StateData};
+handle_sync_event(_Event, _From, StateName, StateData)->
 	%{next_state, idle, StateData}.
-	{reply, null, idle, StateData}.
+	{reply, {self(), StateName}, StateName, StateData}.
 
 handle_info(_Info, _StateName, StateData)->
 	{next_state, idle, StateData}.
