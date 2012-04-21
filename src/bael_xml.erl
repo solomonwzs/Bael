@@ -54,8 +54,11 @@ save_elements_to_dict({Tags, Depth, XmlElement})->
 	Length=length(ParentsList)+1,
 	if
 		Depth=:=null orelse Depth>=Length->
-			{TextList, ElementList}=
-			 lists:foldl(fun filter_xml_content/2, {[], []}, Content),
+			{TextList, ElementList}=lists:foldl(
+				fun filter_xml_content/2, 
+				{[], []}, 
+				Content
+			),
 			Element=#xml_element{
 				tag_name=Tag,
 				parents=ParentsList,
@@ -67,8 +70,10 @@ save_elements_to_dict({Tags, Depth, XmlElement})->
 			MathElementsList=erlang:get(?MATH_XML_ELEMENTS_LIST),
 			if
 				Head=:=Tag andalso Math=:=true->
-					erlang:put(?MATH_XML_ELEMENTS_LIST, 
-					 lists:append(MathElementsList, [Element]));
+					erlang:put(
+						?MATH_XML_ELEMENTS_LIST, 
+					 	lists:append(MathElementsList, [Element])
+					);
 				true->not_math
 			end,
 	 		lists:foreach(fun save_elements_to_dict/1,

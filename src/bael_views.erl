@@ -33,9 +33,11 @@ hello('POST', Req)->
 handle_data_table(Req, DataTable)->
 	{_ResultPacket, _, FieldList, TableData, _}=DataTable,
 	FieldNames=get_fields(FieldList),
-	bael_shortcuts:render_ok(Req, bael_table_dtl, [
-	 {field_names, FieldNames},
- 	 {table_data, TableData}]).
+	bael_shortcuts:render_ok(
+		Req, 
+		bael_table_dtl, 
+		[{field_names, FieldNames}, {table_data, TableData}]
+	).
 get_fields([])->
 	[];
 get_fields([Head|Tail])->

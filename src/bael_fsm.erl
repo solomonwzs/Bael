@@ -25,7 +25,7 @@ handle_event(_Event, _StateName, StateData)->
 
 handle_sync_event(just_test, From, StateName, StateData)->
 	io:format("handle sync_send_all_state_event(from: ~p): ~p~n", 
-	 [From, just_test]),
+	 	[From, just_test]),
 	io:format("fsm(~p) state: ~p~n", [self(), StateName]),
 	{reply, {self(), reply}, StateName, StateData, hibernate};
 handle_sync_event(test_timeout, _From, StateName, StateData)->

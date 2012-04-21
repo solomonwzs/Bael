@@ -44,4 +44,4 @@ stop() ->
     
 init_db_conn()->
 	emysql:add_pool(db_test, ?DB_CONN_NUM, ?DB_USER_NAME, ?DB_PASSWORD,
-	 ?DB_HOSTNAME, ?DB_PORT, ?DB_DEFAULT_DB, utf8).
+		?DB_HOSTNAME, ?DB_PORT, ?DB_DEFAULT_DB, utf8).

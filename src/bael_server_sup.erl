@@ -13,7 +13,9 @@ upgrade()->
 
 init([])->
 	Strategy={one_for_one, 10, 10},
-	SpecsList=[{lists:concat(["server_", ID]), {bael_server, start_link, []},
-	 permanent, 5000, worker, dynamic}||
- 	 ID<-lists:seq(0, ?MAX_SERVERS_POOL_SIZE-1)],
+	SpecsList=[{
+			lists:concat(["server_", ID]), 
+			{bael_server, start_link, []},
+			permanent, 5000, worker, dynamic
+		}||ID<-lists:seq(0, ?MAX_SERVERS_POOL_SIZE-1)],
  	{ok, {Strategy, lists:flatten(SpecsList)}}.

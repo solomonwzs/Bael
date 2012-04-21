@@ -29,22 +29,30 @@ set_value([Head|Tail], NewValue, Struct)->
 		Value=proplists:get_value(Key, ValueList),
 		if
 			Value=:=undefined->throw("invalid_key");
-			Tail=:=[]->
-				{struct, lists:append(proplists:delete(Key, ValueList),
-				 [{Key, bael_common_func:thing_to_binary(NewValue)}])};
-			length(Tail)>0->
-				{struct, lists:append(proplists:delete(Key, ValueList),
-				 [{Key, set_value(Tail, 
-				  bael_common_func:thing_to_binary(NewValue), Value)}])}
+			Tail=:=[]->{
+				struct, 
+				lists:append(proplists:delete(Key, ValueList),
+					[{Key, bael_common_func:thing_to_binary(NewValue)}]
+				)};
+			length(Tail)>0->{
+				struct, 
+				lists:append(proplists:delete(Key, ValueList), [{
+					Key, 
+					set_value(
+						Tail, 
+						bael_common_func:thing_to_binary(NewValue),
+						Value
+					)}])}
 	 	end
 	catch
 		Type:What->
-			Report=["set struct value failed",
-			 {key, Head},
-			 {value, NewValue},
-		 	 {type, Type},
-		 	 {what, What},
-		 	 {trace, erlang:get_stacktrace()}],
+			Report=[
+				"set struct value failed",
+				{key, Head},
+			 	{value, NewValue},
+		 	 	{type, Type},
+		 	 	{what, What},
+		 	 	{trace, erlang:get_stacktrace()}],
 		 	error_logger:error_report(Report),
 			Type(set_struct_value_failed)
 	end.
