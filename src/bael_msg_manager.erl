@@ -40,11 +40,20 @@ idle(start, StateData)->
 
 find_idle_fsm(FsmSupRef)->
 	Func=fun(X)->
+		{_, Pid, _, _}=X,
 		try
-			State=gen_fsm:sync_send_all_event(X, get_state, ?FSM_BUSY_TIMEOUT),
-			{State, X}
+			State=gen_fsm:sync_send_all_event(Pid, get_state, 
+			 ?FSM_BUSY_TIMEOUT),
+			{State, Pid}
 		catch
-			_:_->{busy, X}
+			_:_->{busy, Pid}
 		end
 	end,
-	hd(lists:foreach(Func, supervisor:which_children(FsmSupRef))).
+	List=lists:foreach(Func, supervisor:which_children(FsmSupRef)),
+	case proplists:get_all_values(idle, List) of
+		[]->
+			timer:sleep(1000),
+			find_idle_fsm(FsmSupRef);
+		Res->
+			hd(Res)
+	end.
