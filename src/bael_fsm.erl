@@ -1,6 +1,6 @@
 -module(bael_fsm).
 -behaviour(gen_fsm).
--export([start_link/0]).
+-export([start_link/0, get_msg/1]).
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
 	terminate/3, code_change/4]).
 -export([idle/2, idle/3, work/2, work/3]).
@@ -28,6 +28,8 @@ handle_sync_event(just_test, From, StateName, StateData)->
 	 	[From, just_test]),
 	io:format("fsm(~p) state: ~p~n", [self(), StateName]),
 	{reply, {self(), reply}, StateName, StateData, hibernate};
+handle_sync_event(get_state, _From, StateName, StateData)->
+	{reply, StateName, StateName, StateData};
 handle_sync_event(test_timeout, _From, StateName, StateData)->
 	timer:sleep(2000),
 	{reply, {self(), StateName}, StateName, StateData};
@@ -48,6 +50,18 @@ idle({timeout, _Ref, Msg}, StateData)->
 	io:format("handle start_timer: ~p~n", [Msg]),
 	io:format("fsm(~p) state: idle~n", [self()]),
 	{next_state, work, StateData, 5000};
+idle({test_msg, Msg}, StateData)->
+	timer:sleep(1000),
+	emysql:execute(
+		db_test,
+		lists:concat([
+			"insert into db (name) values ('", 
+			Msg, 
+			pid_to_list(self()), 
+			"')"])),
+	io:format("handle send_event: ~p~n", [{test_msg, Msg}]),
+	io:format("fsm(~p) state: idle~n", [self()]),
+	{next_state, idle, StateData};
 idle(Event, StateData)->
 	io:format("handle send_event: ~p~n", [Event]),
 	io:format("fsm(~p) state: idle~n", [self()]),
@@ -70,3 +84,13 @@ work(Event, From, StateData)->
 	io:format("handle sync_send_event(from ~p): ~p~n", [From, Event]),
 	io:format("fsm(~p) state: work~n", [self()]),
 	{reply, {self(), reply}, work, StateData}.
+
+get_msg({Page, Num})->
+	{result_packet, _, _Fields, List, _}=emysql:execute(
+		db_test,
+		lists:concat([
+			"select name from emysql_test limit ", 
+			Page*Num, 
+			", ",
+			Num])),
+	{[{test_msg, X}||X<-List], {Page+1, Num}}.

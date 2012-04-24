@@ -45,10 +45,18 @@ upgrade() ->
 init([]) ->
     Web = web_specs(bael_web, ?HTTP_PORT),
     ServerSup={bael_server_sup, {bael_server_sup, start_link, []},
-	 permanent, 5000, supervisor, dynamic},
+		permanent, 5000, supervisor, dynamic},
     FsmSup={bael_fsm_sup, {bael_fsm_sup, start_link, []},
-	 permanent, 5000, supervisor, dynamic},
-    Processes = [Web, ServerSup, FsmSup],
+		permanent, 5000, supervisor, dynamic},
+	MsgManager={
+		bael_msg_manager, 
+		{
+			bael_msg_manager, 
+			start_link, 
+			[bael_msg_manager, bael_fsm_sup, {bael_fsm, get_msg}]
+		},
+		permanent, 5000, worker, dynamic},
+    Processes = [Web, ServerSup, FsmSup, MsgManager],
     Strategy = {one_for_one, 10, 10},
     {ok,
      {Strategy, lists:flatten(Processes)}}.
