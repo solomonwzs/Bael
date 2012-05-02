@@ -9,6 +9,7 @@ start_link()->
 	gen_fsm:start_link(?MODULE, [], []).
 
 init([])->
+	process_flag(trap_exit, true),
 	{ok, idle, {}}.
 
 handle_event(test_timer, StateName, StateData)->
@@ -41,6 +42,7 @@ handle_info(_Info, _StateName, StateData)->
 	{next_state, idle, StateData}.
 
 terminate(_Reason, _StateName, _StateData)->
+	io:format("~p~n", [_Reason]),
 	ok.
 
 code_change(_OldVsn, _StateName, StateData, _Extra)->
@@ -51,13 +53,14 @@ idle({timeout, _Ref, Msg}, StateData)->
 	io:format("fsm(~p) state: idle~n", [self()]),
 	{next_state, work, StateData, 5000};
 idle({test_msg, Msg}, StateData)->
-	timer:sleep(1000),
+	%timer:sleep(5000),
 	emysql:execute(
 		db_test,
 		lists:concat([
 			"insert into db (name) values ('", 
 			Msg, 
-			pid_to_list(self()), 
+			pid_to_list(self()),
+			calendar:time_to_seconds(now()),
 			"')"])),
 	io:format("handle send_event: ~p~n", [{test_msg, Msg}]),
 	io:format("fsm(~p) state: idle~n", [self()]),

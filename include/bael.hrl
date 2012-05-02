@@ -2,7 +2,7 @@
 -define(MAX_SERVERS_POOL_SIZE, 10).
 -define(MAX_FSMS_POOL_SIZE, 10).
 -define(MAX_MSG_POOL_SIZE, 100).
--define(FSM_BUSY_TIMEOUT, 1000).
+-define(FSM_BUSY_TIMEOUT, 10).
 -define(MSG_MANAGER_RETRY_TIME, 1000).
 -define(MSG_START_WORK_TIME, 100).
 -define(URLS, [
@@ -34,7 +34,8 @@
 	msg_num=0,
 	get_msgs,%{M, F}
 	get_msgs_args=null,
-	msg_list=[]
+	msg_list=[],
+	fsm_list=[]
 }).
 
 -record(error_message, {
