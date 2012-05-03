@@ -26,7 +26,8 @@
 
 -record(fsm_state, {
 	pid,
-	state
+	state,
+	ets_id
 }).
 
 -record(msg_manager_state,{
@@ -42,4 +43,9 @@
 	type=undefined,
 	what=undefined,
 	trace=[]
+}).
+
+-record(ets_fsm_state,{
+	pid,
+	state
 }).

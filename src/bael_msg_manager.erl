@@ -4,7 +4,7 @@
 -export([start_link/2, start_link/3, find_idle_fsm/1]).
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
 	terminate/3, code_change/4]).
--export([idle/2, work/2]).
+-export([idle/2, working/2]).
 
 start_link(FsmSupRef, GetMsgs)->
 	gen_fsm:start_link(?MODULE, [FsmSupRef, GetMsgs], []).
@@ -30,6 +30,9 @@ handle_sync_event(_Event, _From, StateName, StateData)->
 	%{next_state, idle, StateData}.
 	{reply, null, StateName, StateData}.
 
+handle_info({Pid, SName, Time}, StateName, StateData)->
+	io:format("~p~n", [{Pid, SName, Time}]),
+	{next_state, StateName, StateData};
 handle_info(_Info, StateName, StateData)->
 	{next_state, StateName, StateData}.
 
@@ -39,14 +42,18 @@ terminate(_Reason, _StateName, _StateData)->
 code_change(_OldVsn, _StateName, StateData, _Extra)->
 	{ok, idle, StateData}.
 
+idle(send_info, StateData)->
+	Pid=find_idle_fsm(StateData#msg_manager_state.fsm_sup_ref),
+	Pid!{get_state, self()},
+	{next_state, idle, StateData};
 idle({start, Args}, StateData)->
 	io:format("start(~p)~n", [now()]),
 	timer:apply_after(100, gen_fsm, send_event, [?MODULE, send_msg]),
-	{next_state, work, StateData#msg_manager_state{
+	{next_state, working, StateData#msg_manager_state{
 		get_msgs_args=Args
 	}}.
 
-%work(timeout, StateData)->
+%working(timeout, StateData)->
 %	{MsgList, NextArgs}=check_msg_list(StateData),
 %	case MsgList of
 %		[]->
@@ -58,12 +65,12 @@ idle({start, Args}, StateData)->
 %		[Msg|Tail]->
 %			Pid=find_idle_fsm(StateData#msg_manager_state.fsm_sup_ref),
 %			gen_fsm:send_event(Pid, Msg),
-%			{next_state, work, StateData#msg_manager_state{
+%			{next_state, working, StateData#msg_manager_state{
 %				msg_list=Tail,
 %				get_msgs_args=NextArgs
 %			}, 500}
 %	end.
-work(send_msg, StateData)->
+working(send_msg, StateData)->
 	{MsgList, NextArgs}=check_msg_list(StateData),
 	bael_logger:logger_to_file("./log/log", "~p~n", [MsgList]),
 	if 
@@ -74,7 +81,7 @@ work(send_msg, StateData)->
 			end,
 			lists:foreach(Func, MsgList),
 			timer:apply_after(500, gen_fsm, send_event, [?MODULE, send_msg]),
-			{next_state, work, StateData#msg_manager_state{
+			{next_state, working, StateData#msg_manager_state{
 					msg_list=[],
 					get_msgs_args=NextArgs
 				}};
@@ -138,3 +145,21 @@ find_idle_fsm(FsmSupRef)->
 		Pid->
 			Pid
 	end.
+
+%broadcast_msg(SupRef, Msg)->
+%	Func=fun(P)->
+%		P!Msg
+%	end,
+%	lists:foreach(
+%		Func, 
+%		[Pid||{_, Pid, _, _}<-supervisor:which_children(SupRef)]).
+%
+%send_msg([], MsgList)->
+%	ok;
+%send_msg(FsmList, [])->
+%	ok;
+%send_msg(FsmList, MsgList)->
+%	[Fsm|Tail0]=FsmList,
+%	[Msg|Tail1]=MsgList,
+%	gen_fsm:send_event(Fsm, Msg),
+%	send_msg(Tail0, Tail1).

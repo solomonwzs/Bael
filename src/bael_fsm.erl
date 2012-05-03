@@ -3,7 +3,7 @@
 -export([start_link/0, get_msg/1]).
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
 	terminate/3, code_change/4]).
--export([idle/2, idle/3, work/2, work/3]).
+-export([idle/2, idle/3, working/2, working/3]).
 
 start_link()->
 	gen_fsm:start_link(?MODULE, [], []).
@@ -38,11 +38,15 @@ handle_sync_event(_Event, _From, StateName, StateData)->
 	%{next_state, idle, StateData}.
 	{reply, {self(), StateName}, StateName, StateData}.
 
-handle_info(_Info, _StateName, StateData)->
-	{next_state, idle, StateData}.
+handle_info({get_state, From}, StateName, StateData)->
+	From!{self(), StateName, now()},
+	io:format("handle info(from: ~p): ~p~n", [From, {get_state, From}]),
+	{next_state, StateName, StateData}.
+%handle_info(_Info, _StateName, StateData)->
+%	{next_state, idle, StateData}.
 
 terminate(_Reason, _StateName, _StateData)->
-	io:format("~p~n", [_Reason]),
+	io:format("fsm(~p) terminate: ~p~n", [self(), _Reason]),
 	ok.
 
 code_change(_OldVsn, _StateName, StateData, _Extra)->
@@ -51,7 +55,7 @@ code_change(_OldVsn, _StateName, StateData, _Extra)->
 idle({timeout, _Ref, Msg}, StateData)->
 	io:format("handle start_timer: ~p~n", [Msg]),
 	io:format("fsm(~p) state: idle~n", [self()]),
-	{next_state, work, StateData, 5000};
+	{next_state, working, StateData, 5000};
 idle({test_msg, Msg}, StateData)->
 	%timer:sleep(5000),
 	emysql:execute(
@@ -75,18 +79,18 @@ idle(Event, From, StateData)->
 	io:format("fsm(~p) state: idle~n", [self()]),
 	{reply, {self(), reply}, idle, StateData}.
 
-work(timeout, StateDate)->
+working(timeout, StateDate)->
 	io:format("fsm(~p) finish work~n", [self()]),
 	{next_state, idle, StateDate};
-work(Event, StateData)->
+working(Event, StateData)->
 	io:format("handle send_event: ~p~n", [Event]),
-	io:format("fsm(~p) state: work~n", [self()]),
-	{next_state, work, StateData}.
+	io:format("fsm(~p) state: working~n", [self()]),
+	{next_state, working, StateData}.
 
-work(Event, From, StateData)->
+working(Event, From, StateData)->
 	io:format("handle sync_send_event(from ~p): ~p~n", [From, Event]),
-	io:format("fsm(~p) state: work~n", [self()]),
-	{reply, {self(), reply}, work, StateData}.
+	io:format("fsm(~p) state: working~n", [self()]),
+	{reply, {self(), reply}, working, StateData}.
 
 get_msg({Page, Num})->
 	{result_packet, _, _Fields, List, _}=emysql:execute(
