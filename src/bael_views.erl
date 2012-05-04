@@ -5,9 +5,9 @@
 ajax_test('POST', Req)->
 	PostData=Req:parse_post(),
 	Json=proplists:get_value("json", PostData),
-%	Struct=mochijson2:decode(Json),
-%	NewStruct=bael_struct:set_value([person, name], jack, Struct),
-%	io:format("~p~n~p~n", [Struct, NewStruct]),
+	%Struct=mochijson2:decode(Json),
+	%NewStruct=bael_struct:set_value([person, name], jack, Struct),
+	%io:format("~p~n~p~n", [Struct, Json]),
 	Req:ok({"application/json", [], [Json]}). 
 
 test('GET', Req)->
@@ -17,8 +17,8 @@ test('GET', Req)->
 	Page=list_to_integer(proplists:get_value("page", QueryStringData, "1")),
 	Num=list_to_integer(proplists:get_value("num", QueryStringData, "50")),
 	DataTable=emysql:execute(db_test, 
-	 list_to_binary(lists:concat([
-	  "select * from ", TableName, " limit ", (Page-1)*Num, ",", Num]))),
+		list_to_binary(lists:concat([
+	  		"select * from ", TableName, " limit ", (Page-1)*Num, ",", Num]))),
 	handle_data_table(Req, DataTable).
 
 hello('GET', Req)->

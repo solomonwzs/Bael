@@ -14,10 +14,10 @@ get_value([Head|Tail], Struct)->
 	catch
 		Type:What->
 			Report=["get struct value failed",
-			 {key, Head},
-		 	 {type, Type},
-		 	 {what, What},
-		 	 {trace, erlang:get_stacktrace()}],
+				{key, Head},
+		 		{type, Type},
+		 		{what, What},
+		 		{trace, erlang:get_stacktrace()}],
 		 	error_logger:error_report(Report),
 			Type(get_struct_value_failed)
 	end.
