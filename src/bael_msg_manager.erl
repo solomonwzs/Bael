@@ -1,38 +1,32 @@
 -module(bael_msg_manager).
 -behaviour(gen_fsm).
 -include("bael.hrl").
--export([start_link/2, start_link/3, find_idle_fsm/1]).
+-export([start_link/3, start_link/4, find_idle_fsm/1]).
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
 	terminate/3, code_change/4]).
 -export([idle/2, working/2]).
 
-start_link(FsmSupRef, GetMsgs)->
-	gen_fsm:start_link(?MODULE, [FsmSupRef, GetMsgs], []).
+start_link(FsmSupRef, GetMsgs, EtsRef)->
+	gen_fsm:start_link(?MODULE, [FsmSupRef, GetMsgs, EtsRef], []).
 
-start_link(FsmName, FsmSupRef, GetMsgs)->
+start_link(FsmName, FsmSupRef, GetMsgs, EtsRef)->
 	gen_fsm:start_link({local, FsmName}, ?MODULE, 
-		[FsmSupRef, GetMsgs], []).
+		[FsmSupRef, GetMsgs, EtsRef], []).
 
-init([FsmSupRef, {M, F}])->
+init([FsmSupRef, {M, F}, EtsRef])->
 	{ok, idle, #msg_manager_state{
 		fsm_sup_ref=FsmSupRef,
-		get_msgs={M, F}
+		get_msgs={M, F},
+		ets_fsm=EtsRef
 	}}.
 
 handle_event(_Event, StateName, StateData)->
 	{next_state, StateName, StateData}.
 
-handle_sync_event(get_state, _From, StateName, StateData)->
-	{reply, StateName, StateName, StateData};
-handle_sync_event(get_msg_list, _From, StateName, StateData)->
-	{reply, StateData#msg_manager_state.msg_list, StateName, StateData};
 handle_sync_event(_Event, _From, StateName, StateData)->
 	%{next_state, idle, StateData}.
 	{reply, null, StateName, StateData}.
 
-handle_info({Pid, SName, Time}, StateName, StateData)->
-	io:format("~p~n", [{Pid, SName, Time}]),
-	{next_state, StateName, StateData};
 handle_info(_Info, StateName, StateData)->
 	{next_state, StateName, StateData}.
 
@@ -42,56 +36,47 @@ terminate(_Reason, _StateName, _StateData)->
 code_change(_OldVsn, _StateName, StateData, _Extra)->
 	{ok, idle, StateData}.
 
-idle(send_info, StateData)->
-	Pid=find_idle_fsm(StateData#msg_manager_state.fsm_sup_ref),
-	Pid!{get_state, self()},
-	{next_state, idle, StateData};
 idle({start, Args}, StateData)->
 	io:format("start(~p)~n", [now()]),
-	timer:apply_after(100, gen_fsm, send_event, [?MODULE, send_msg]),
+	Timer=timer:apply_after(?MSG_START_WORK_TIME, gen_fsm, send_event,
+		[self(), send_msg]),
 	{next_state, working, StateData#msg_manager_state{
-		get_msgs_args=Args
-	}}.
+		get_msgs_args=Args,
+		timer_ref=Timer
+	}};
+idle(_Event, StateData)->
+	{next_state, idle, StateData}.
 
-%working(timeout, StateData)->
-%	{MsgList, NextArgs}=check_msg_list(StateData),
-%	case MsgList of
-%		[]->
-%			io:format("finish~n"),
-%			{next_state, idle, StateData#msg_manager_state{
-%				msg_list=[],
-%				get_msgs_args=null
-%			}};
-%		[Msg|Tail]->
-%			Pid=find_idle_fsm(StateData#msg_manager_state.fsm_sup_ref),
-%			gen_fsm:send_event(Pid, Msg),
-%			{next_state, working, StateData#msg_manager_state{
-%				msg_list=Tail,
-%				get_msgs_args=NextArgs
-%			}, 500}
-%	end.
 working(send_msg, StateData)->
 	{MsgList, NextArgs}=check_msg_list(StateData),
-	bael_logger:logger_to_file("./log/log", "~p~n", [MsgList]),
-	if 
+	if
 		MsgList=/=[]->
-			Func=fun(Msg)->
-				Pid=find_idle_fsm(StateData#msg_manager_state.fsm_sup_ref),
-				gen_fsm:send_event(Pid, Msg)
-			end,
-			lists:foreach(Func, MsgList),
-			timer:apply_after(500, gen_fsm, send_event, [?MODULE, send_msg]),
-			{next_state, working, StateData#msg_manager_state{
-					msg_list=[],
-					get_msgs_args=NextArgs
-				}};
+			case find_idle_fsm(StateData#msg_manager_state.ets_fsm) of
+				[]->
+					Timer=timer:apply_after(?MSG_WAIT_IDLE_FSM_TIME, 
+						gen_fsm, send_event, [self(), send_msg]),
+					{next_state, working, 
+						StateData#msg_manager_state{timer_ref=Timer}};
+				FsmList->
+					send_msg(FsmList, MsgList, 
+						StateData#msg_manager_state.ets_fsm),
+					Timer=timer:apply_after(100, gen_fsm, send_event,
+						[self(), send_msg]),
+					{next_state, working, 
+						StateData#msg_manager_state{
+							timer_ref=Timer,
+							get_msgs_args=NextArgs
+						}}
+			end;
 		true->
 			io:format("finish(~p)~n", [now()]),
 			{next_state, idle, StateData#msg_manager_state{
 					msg_list=[],
 					get_msgs_args=null
 				}}
-	end.
+	end;
+working(_Event, StateData)->
+	{next_state, working, StateData}.
 
 check_msg_list(#msg_manager_state{
 	msg_list=List,
@@ -105,61 +90,29 @@ check_msg_list(#msg_manager_state{
 			{List, Args}
 	end.
 
-%find_idle_fsm(FsmSupRef)->
-%	Func=fun(X)->
-%		{_, Pid, _, _}=X,
-%		try
-%			State=gen_fsm:sync_send_all_state_event(Pid, get_state, 
-%				?FSM_BUSY_TIMEOUT),
-%			{State, Pid}
-%		catch
-%			_:_->{busy, Pid}
-%		end
-%	end,
-%	List=lists:map(Func, supervisor:which_children(FsmSupRef)),
-%	case proplists:get_all_values(idle, List) of
-%		[]->
-%			io:format("wait~n"),
-%			timer:sleep(?MSG_MANAGER_RETRY_TIME),
-%			find_idle_fsm(FsmSupRef);
-%		Res->
-%			hd(Res)
-%	end.
-find_idle_fsm([])->
-	all_busy;
-find_idle_fsm([Head|Tail])->
+find_idle_fsm(EtsRef)->
 	try
-		{_, Pid, _, _}=Head,
-		idle=gen_fsm:sync_send_all_state_event(Pid, get_state, 
-			?FSM_BUSY_TIMEOUT),
-		Pid
+		List=ets:match(EtsRef, {'$1', #fsm_state_info{state=idle, _='_'}}),
+		[Pid||[Pid]<-List]
 	catch
-		_:_->find_idle_fsm(Tail)
-	end;
-find_idle_fsm(FsmSupRef)->
-	case find_idle_fsm(supervisor:which_children(FsmSupRef)) of
-		all_busy->
-			io:format("all busy, waiting...~n"),
-			timer:sleep(?MSG_MANAGER_RETRY_TIME),
-			find_idle_fsm(FsmSupRef);
-		Pid->
-			Pid
+		_:_->[]
 	end.
 
-%broadcast_msg(SupRef, Msg)->
-%	Func=fun(P)->
-%		P!Msg
-%	end,
-%	lists:foreach(
-%		Func, 
-%		[Pid||{_, Pid, _, _}<-supervisor:which_children(SupRef)]).
-%
-%send_msg([], MsgList)->
-%	ok;
-%send_msg(FsmList, [])->
-%	ok;
-%send_msg(FsmList, MsgList)->
-%	[Fsm|Tail0]=FsmList,
-%	[Msg|Tail1]=MsgList,
-%	gen_fsm:send_event(Fsm, Msg),
-%	send_msg(Tail0, Tail1).
+suspend_fsm(EtsRef, FsmPid)->
+	ets:insert(EtsRef, {FsmPid, 
+			#fsm_state_info{
+				pid=FsmPid,
+				state=busy,
+				info=process_info(FsmPid)
+			}}).
+
+send_msg([], _MsgList, _EtsRef)->
+	ok;
+send_msg(_FsmList, [], _EtsRef)->
+	ok;
+send_msg(FsmList, MsgList, EtsRef)->
+	[Fsm|Tail0]=FsmList,
+	[Msg|Tail1]=MsgList,
+	suspend_fsm(EtsRef, Fsm),
+	gen_fsm:send_event(Fsm, Msg),
+	send_msg(Tail0, Tail1, EtsRef).

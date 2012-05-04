@@ -1,5 +1,6 @@
 -module(bael_fsm).
 -behaviour(gen_fsm).
+-include("bael.hrl").
 -export([start_link/0, get_msg/1]).
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
 	terminate/3, code_change/4]).
@@ -10,6 +11,7 @@ start_link()->
 
 init([])->
 	process_flag(trap_exit, true),
+	write_ets_state_table(idle),
 	{ok, idle, {}}.
 
 handle_event(test_timer, StateName, StateData)->
@@ -57,7 +59,7 @@ idle({timeout, _Ref, Msg}, StateData)->
 	io:format("fsm(~p) state: idle~n", [self()]),
 	{next_state, working, StateData, 5000};
 idle({test_msg, Msg}, StateData)->
-	%timer:sleep(5000),
+	timer:sleep(5000),
 	emysql:execute(
 		db_test,
 		lists:concat([
@@ -68,6 +70,7 @@ idle({test_msg, Msg}, StateData)->
 			"')"])),
 	io:format("handle send_event: ~p~n", [{test_msg, Msg}]),
 	io:format("fsm(~p) state: idle~n", [self()]),
+	write_ets_state_table(idle),
 	{next_state, idle, StateData};
 idle(Event, StateData)->
 	io:format("handle send_event: ~p~n", [Event]),
@@ -101,3 +104,12 @@ get_msg({Page, Num})->
 			", ",
 			Num])),
 	{[{test_msg, X}||X<-List], {Page+1, Num}}.
+
+write_ets_state_table(StateName)->
+	Pid=self(),
+	ets:insert(ets_fsm_state, {Pid, 
+			#fsm_state_info{
+				pid=Pid,
+				state=StateName,
+				info=process_info(Pid)
+			}}).

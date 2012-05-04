@@ -12,7 +12,7 @@ upgrade()->
 	ok.
 
 init([])->
-	Tid=ets:new(ets_fsm_state, [set, public]),
+	ets:new(ets_fsm_state, [set, public, named_table]),
 	Strategy={one_for_one, 10, 10},
 	SpecsList=[{
 			lists:concat(["fsm_", ID]), 

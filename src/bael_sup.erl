@@ -53,7 +53,7 @@ init([]) ->
 		{
 			bael_msg_manager, 
 			start_link, 
-			[bael_msg_manager, bael_fsm_sup, {bael_fsm, get_msg}]
+			[bael_msg_manager, bael_fsm_sup, {bael_fsm, get_msg}, ets_fsm_state]
 		},
 		permanent, 5000, worker, dynamic},
     Processes = [Web, ServerSup, FsmSup, MsgManager],

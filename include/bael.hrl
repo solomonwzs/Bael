@@ -2,8 +2,7 @@
 -define(MAX_SERVERS_POOL_SIZE, 10).
 -define(MAX_FSMS_POOL_SIZE, 10).
 -define(MAX_MSG_POOL_SIZE, 100).
--define(FSM_BUSY_TIMEOUT, 10).
--define(MSG_MANAGER_RETRY_TIME, 1000).
+-define(MSG_WAIT_IDLE_FSM_TIME, 500).
 -define(MSG_START_WORK_TIME, 100).
 -define(URLS, [
 	{"^hello/?$", hello},
@@ -35,8 +34,10 @@
 	msg_num=0,
 	get_msgs,%{M, F}
 	get_msgs_args=null,
+	ets_fsm,
 	msg_list=[],
-	fsm_list=[]
+	fsm_list=[],
+	timer_ref=null
 }).
 
 -record(error_message, {
@@ -45,7 +46,8 @@
 	trace=[]
 }).
 
--record(ets_fsm_state,{
+-record(fsm_state_info,{
 	pid,
-	state
+	state,
+	info
 }).
