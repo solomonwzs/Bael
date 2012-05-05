@@ -23,7 +23,7 @@
 	</configuration>").
 
 %test()->
-%	Ret=get_elements([configuration, appId], 3, ?TEST_XML_STRING),
+%	Ret=get_elements([configuration, package], ?TEST_XML_STRING).
 %	if
 %		Ret=:=[#xml_element{
 %			tag_name=appId,
