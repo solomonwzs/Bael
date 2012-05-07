@@ -63,7 +63,7 @@ save_elements_to_dict({Tags, Depth, XmlElement})->
 				tag_name=Tag,
 				parents=ParentsList,
 				attr=process_attrs(Attrs),
-				value=list_to_binary(process_text(TextList))
+				value=process_text(TextList)
 			},
 			[Head|Tail]=lists:reverse(Tags),
 			Math=math_tags_list(Tail, ParentsList),
