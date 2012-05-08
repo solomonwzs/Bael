@@ -38,11 +38,9 @@ code_change(_OldVsn, _StateName, StateData, _Extra)->
 
 idle({start, Args}, StateData)->
 	io:format("start(~p)~n", [now()]),
-	Timer=timer:apply_after(?MSG_START_WORK_TIME, gen_fsm, send_event,
-		[self(), send_msg]),
+	gen_fsm:send_event(self(), send_msg),
 	{next_state, working, StateData#msg_manager_state{
-		get_msgs_args=Args,
-		timer_ref=Timer
+		get_msgs_args=Args
 	}};
 idle(_Event, StateData)->
 	{next_state, idle, StateData}.
@@ -60,11 +58,9 @@ working(send_msg, StateData)->
 				FsmList->
 					send_msg(FsmList, MsgList, 
 						StateData#msg_manager_state.ets_fsm),
-					Timer=timer:apply_after(100, gen_fsm, send_event,
-						[self(), send_msg]),
+					gen_fsm:send_event(self(), send_msg),
 					{next_state, working, 
 						StateData#msg_manager_state{
-							timer_ref=Timer,
 							get_msgs_args=NextArgs
 						}}
 			end;

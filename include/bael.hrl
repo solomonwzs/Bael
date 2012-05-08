@@ -16,7 +16,7 @@
 	tag_name=undefined,
 	parents=[],
 	attr=[],
-	value= <<>>
+	value=[]
 }).
 
 -record(worker_state, {

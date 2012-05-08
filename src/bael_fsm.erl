@@ -3,7 +3,7 @@
 -include("bael.hrl").
 -export([start_link/0, get_msg/1]).
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
-	terminate/3, code_change/4]).
+		terminate/3, code_change/4]).
 -export([idle/2, idle/3, working/2, working/3]).
 
 start_link()->
