@@ -24,9 +24,8 @@
 }).
 
 -record(fsm_state, {
-	pid,
 	state,
-	ets_id
+	msg_server_ref
 }).
 
 -record(msg_manager_state,{
@@ -38,6 +37,14 @@
 	msg_list=[],
 	fsm_list=[],
 	timer_ref=null
+}).
+
+-record(msg_server_state, {
+	fsm_sup_ref,
+	ets,
+	get_msgs,%{M, F}
+	get_msgs_args,
+	msg_list=[]
 }).
 
 -record(error_message, {
