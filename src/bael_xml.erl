@@ -4,7 +4,8 @@
 	
 -define(MATH_XML_ELEMENTS_LIST, bael_xml_dict_key_0).
 -define(TEST_XML_STRING, "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>
-	<configuration>
+	<!--commit2-->
+	<configuration><!--commit0-->
 		<application id=\"test\">
 			<platform id=\"vk\">
 				<appId>123</appId>
@@ -13,7 +14,7 @@
 					<package id=\"vk0\" price=\"100\"  points=\"3\" />
 					<package id=\"vk1\" price=\"500\"  points=\"20\" />
 					<package id=\"vk2\" price=\"1000\" points=\"45\" 
-					 default=\"true\" />
+					 default=\"true\" /><!--commit1-->
 					<package id=\"vk3\" price=\"2500\" points=\"130\" />
 					<package id=\"vk4\" price=\"5000\" points=\"290\" />
 				</packages>
@@ -23,6 +24,8 @@
 	</configuration>").
 
 %test()->
+%	{Element, _}=xmerl_scan:string(?TEST_XML_STRING),
+%	io:format("~p~n", [Element]).
 %	Ret=get_elements([configuration, package], ?TEST_XML_STRING).
 %	if
 %		Ret=:=[#xml_element{
@@ -49,11 +52,11 @@ get_elements(Tags, Depth, XmlElement)->
 	erlang:get(?MATH_XML_ELEMENTS_LIST).
 
 save_elements_to_dict({Tags, Depth, XmlElement})->
-	{xmlElement, Tag, _, _, _, Parents, _, Attrs, Content, _, _, _}=XmlElement,
+	{Type, Tag, _, _, _, Parents, _, Attrs, Content, _, _, _}=XmlElement,
 	ParentsList=process_parents(Parents),
 	Length=length(ParentsList)+1,
 	if
-		Depth=:=null orelse Depth>=Length->
+		Type=:=xmlElement andalso (Depth=:=null orelse Depth>=Length)->
 			{TextList, ElementList}=lists:foldl(
 				fun filter_xml_content/2, 
 				{[], []}, 
@@ -109,7 +112,9 @@ filter_xml_content(Content, {TextList, ElementList})->
 			{List, ElementList};
 		xmlElement->
 			List=lists:append(ElementList, [Content]),
-			{TextList, List}
+			{TextList, List};
+		_->
+			{TextList, ElementList}
 	end.
 
 math_tags_list([], _Parents)->
