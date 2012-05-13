@@ -3,7 +3,7 @@
 -include("bael.hrl").
 -export([start_link/0, get_msg/1]).
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
-	terminate/3, code_change/4]).
+		terminate/3, code_change/4]).
 -export([idle/2, idle/3, working/2, working/3]).
 
 start_link()->
@@ -11,8 +11,8 @@ start_link()->
 
 init([])->
 	process_flag(trap_exit, true),
-	write_ets_state_table(idle),
-	{ok, idle, {}}.
+	%write_ets_state_table(idle),
+	{ok, idle, #fsm_state{}}.
 
 handle_event(test_timer, StateName, StateData)->
 	io:format("handle send_all_state_event: ~p~n", [test_timer]),
@@ -43,9 +43,13 @@ handle_sync_event(_Event, _From, StateName, StateData)->
 handle_info({get_state, From}, StateName, StateData)->
 	From!{self(), StateName, now()},
 	io:format("handle info(from: ~p): ~p~n", [From, {get_state, From}]),
+	{next_state, StateName, StateData};
+handle_info({start, MsgServerRef}, idle, StateData)->
+	io:format("~p get start signal~n", [self()]),
+	gen_fsm:send_event(self(), start),
+	{next_state, working, StateData#fsm_state{msg_server_ref=MsgServerRef}};
+handle_info(_Info, StateName, StateData)->
 	{next_state, StateName, StateData}.
-%handle_info(_Info, _StateName, StateData)->
-%	{next_state, idle, StateData}.
 
 terminate(_Reason, _StateName, _StateData)->
 	io:format("fsm(~p) terminate: ~p~n", [self(), _Reason]),
@@ -70,7 +74,7 @@ idle({test_msg, Msg}, StateData)->
 			"')"])),
 	io:format("handle send_event: ~p~n", [{test_msg, Msg}]),
 	io:format("fsm(~p) state: idle~n", [self()]),
-	write_ets_state_table(idle),
+	%write_ets_state_table(idle),
 	{next_state, idle, StateData};
 idle(Event, StateData)->
 	io:format("handle send_event: ~p~n", [Event]),
@@ -82,6 +86,26 @@ idle(Event, From, StateData)->
 	io:format("fsm(~p) state: idle~n", [self()]),
 	{reply, {self(), reply}, idle, StateData}.
 
+working(start, StateData)->
+	timer:sleep(5000),
+	MsgServerRef=StateData#fsm_state.msg_server_ref,
+	case gen_server:call(MsgServerRef, get_msg) of
+		no_msg->
+			{next_state, idle, StateData};
+		Msg->
+			emysql:execute(
+				db_test,
+				lists:concat([
+					"insert into db (name) values ('", 
+					Msg, 
+					pid_to_list(self()),
+					calendar:time_to_seconds(now()),
+					"')"])),
+			io:format("handle send_event: ~p~n", [{test_msg, Msg}]),
+			io:format("fsm(~p) state: idle~n", [self()]),
+			gen_fsm:send_event(self(), start),
+			{next_state, working, StateData}
+	end;
 working(timeout, StateDate)->
 	io:format("fsm(~p) finish work~n", [self()]),
 	{next_state, idle, StateDate};
@@ -103,13 +127,13 @@ get_msg({Page, Num})->
 			Page*Num, 
 			", ",
 			Num])),
-	{[{test_msg, X}||X<-List], {Page+1, Num}}.
+	{[X||X<-List], {Page+1, Num}}.
 
-write_ets_state_table(StateName)->
-	Pid=self(),
-	ets:insert(ets_fsm_state, {Pid, 
-			#fsm_state_info{
-				pid=Pid,
-				state=StateName,
-				info=process_info(Pid)
-			}}).
+%write_ets_state_table(StateName)->
+%	Pid=self(),
+%	ets:insert(ets_fsm_state, {Pid, 
+%			#fsm_state_info{
+%				pid=Pid,
+%				state=StateName,
+%				info=process_info(Pid)
+%			}}).

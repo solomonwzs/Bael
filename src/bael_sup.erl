@@ -48,15 +48,15 @@ init([]) ->
 		permanent, 5000, supervisor, dynamic},
     FsmSup={bael_fsm_sup, {bael_fsm_sup, start_link, []},
 		permanent, 5000, supervisor, dynamic},
-	MsgManager={
-		bael_msg_manager, 
+	MsgServer={
+		bael_msg_server, 
 		{
-			bael_msg_manager, 
+			bael_msg_server, 
 			start_link, 
-			[bael_msg_manager, bael_fsm_sup, {bael_fsm, get_msg}, ets_fsm_state]
+			[bael_msg_server, bael_fsm_sup, {bael_fsm, get_msg}]
 		},
 		permanent, 5000, worker, dynamic},
-    Processes = [Web, ServerSup, FsmSup, MsgManager],
+    Processes = [Web, ServerSup, FsmSup, MsgServer],
     Strategy = {one_for_one, 10, 10},
     {ok,
      {Strategy, lists:flatten(Processes)}}.
