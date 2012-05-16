@@ -26,7 +26,7 @@ dispatch(Req, [{Regexp, Function}|Tail])->
 	"/"++Path=Req:get(path),
 	Method=Req:get(method),
 	Match=re:run(Path, Regexp, [global, 
-	 {capture, all_but_first, list}]),
+		{capture, all_but_first, list}]),
 	case Match of
 		{match, [MatchList]}->
 			Length=length(MatchList),

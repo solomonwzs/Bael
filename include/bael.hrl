@@ -7,9 +7,10 @@
 -define(URLS, [
 	{"^hello/?$", hello},
 	{"^hello/(.+?)/?$", hello},
-	{"^test/?$", test},
+	{"^table/?$", table},
 	{"^resoure/(.+?)/?$", resoure},
-	{"^ajax_test/?$", ajax_test}
+	{"^ajax_test/?$", ajax_test},
+	{"^base/?$", base}
 ]).
 
 -record(xml_element, {

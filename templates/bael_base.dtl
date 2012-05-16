@@ -1,6 +1,7 @@
-<!DOCTYPE>
+<!DOCTYPE html>
 <html>
 	<head>
+		<title>{%block title%}{%endblock%}</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 		<link href="/resoure/css/global.css" type="text/css" 
 		 rel="stylesheet"/>
@@ -8,14 +9,24 @@
 		 type="text/javascript"></script>
 		<script src="/resoure/js/JSON-js/json2.js" 
 		 type="text/javascript"></script>
-		<script src="/resoure/js/bael_test.js" 
-		 type="text/javascript"></script>
+	 	{%block head%}{%endblock%}
 	</head>
 	<body>
-		<p>Hello {{username}}</p>
-		{%for i in username%}
-			<p>{{i}}</p>
-		{%endfor%}
-		{%include "bael_main.dtl" with person=username%}
+		{%include "bael_top.dtl"%}
+		<div class="bael_center">
+			<div class="bael_header">
+			{%block header%}{%endblock%}
+			</div>
+		</div>
+		<div class="bael_center">
+			<div class="bael_main">
+			{%block main%}{%endblock%}
+			</div>
+		</div>
+		<div class="bael_center">
+			<div class="bael_bottom">
+			{%block bottom%}{%endblock%}
+			</div>
+		</div>
 	</body>
 <html>

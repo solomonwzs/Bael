@@ -1,0 +1,9 @@
+<div class="bael_center" style="width:100%">
+	<div class="bael_top" style="width:100%">
+		<form class="bael_loginForm">
+			<input type="text" name="username" id="username"/>
+			<input type="password" name="password" id="password"/>
+			<input type="submit" value="log in"/>
+		</form>
+	</div>
+</div>

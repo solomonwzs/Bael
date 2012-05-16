@@ -1,6 +1,9 @@
 -module(bael_views).
 -include("bael_mysql.hrl").
--export([test/2, hello/2, hello/3, ajax_test/2]).
+-export([table/2, hello/2, hello/3, ajax_test/2, base/2]).
+
+base('GET', Req)->
+	bael_shortcuts:render_ok(Req, bael_extends_dtl, []).
 
 ajax_test('POST', Req)->
 	PostData=Req:parse_post(),
@@ -10,7 +13,7 @@ ajax_test('POST', Req)->
 	%io:format("~p~n~p~n", [Struct, Json]),
 	Req:ok({"application/json", [], [Json]}). 
 
-test('GET', Req)->
+table('GET', Req)->
 	QueryStringData=Req:parse_qs(),
 	TableName=proplists:get_value("tablename", QueryStringData, 
 	 ?DB_DEFAULT_TABLE),
@@ -24,14 +27,14 @@ test('GET', Req)->
 hello('GET', Req)->
 	QueryStringData=Req:parse_qs(),
 	Username=proplists:get_value("username", QueryStringData, "Anonymous"),
-	bael_shortcuts:render_ok(Req, bael_base_dtl, [{username, Username}]);
+	bael_shortcuts:render_ok(Req, bael_test_dtl, [{username, Username}]);
 hello('POST', Req)->
 	PostData=Req:parse_post(),
 	Username=proplists:get_value("username", PostData, "Anonymous"),
-	bael_shortcuts:render_ok(Req, bael_base_dtl, [{username, Username}]).
+	bael_shortcuts:render_ok(Req, bael_test_dtl, [{username, Username}]).
 
 hello('GET', Req, SubPath)->
-	bael_shortcuts:render_ok(Req, bael_base_dtl, [{username, SubPath}]).
+	bael_shortcuts:render_ok(Req, bael_test_dtl, [{username, SubPath}]).
 
 handle_data_table(Req, DataTable)->
 	{_ResultPacket, _, FieldList, TableData, _}=DataTable,

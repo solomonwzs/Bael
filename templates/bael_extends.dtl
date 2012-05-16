@@ -1,0 +1,11 @@
+{%extends "bael_base.dtl"%}
+
+{%block title%}Base{%endblock%}
+
+{%block head%}{%endblock%}
+
+{%block header%}{%endblock%}
+
+{%block main%}{%endblock%}
+
+{%block bottom%}{%endblock%}
