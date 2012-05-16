@@ -16,5 +16,6 @@
 		{%for i in username%}
 			<p>{{i}}</p>
 		{%endfor%}
+		{%include "bael_main.dtl" with person=username%}
 	</body>
 <html>
