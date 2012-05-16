@@ -1,6 +1,6 @@
 -module(bael_views).
 -include("bael_mysql.hrl").
--export([test/2, hello/2, ajax_test/2]).
+-export([test/2, hello/2, hello/3, ajax_test/2]).
 
 ajax_test('POST', Req)->
 	PostData=Req:parse_post(),
@@ -29,6 +29,9 @@ hello('POST', Req)->
 	PostData=Req:parse_post(),
 	Username=proplists:get_value("username", PostData, "Anonymous"),
 	bael_shortcuts:render_ok(Req, bael_base_dtl, [{username, Username}]).
+
+hello('GET', Req, SubPath)->
+	bael_shortcuts:render_ok(Req, bael_base_dtl, [{username, SubPath}]).
 
 handle_data_table(Req, DataTable)->
 	{_ResultPacket, _, FieldList, TableData, _}=DataTable,

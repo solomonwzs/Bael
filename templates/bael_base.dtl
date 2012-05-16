@@ -2,13 +2,13 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-		<link href="./resoure/css/global.css" type="text/css" 
+		<link href="/resoure/css/global.css" type="text/css" 
 		 rel="stylesheet"/>
-		<script src="./resoure/js/jquery/jquery.min.js" 
+		<script src="/resoure/js/jquery/jquery.min.js" 
 		 type="text/javascript"></script>
-		<script src="./resoure/js/JSON-js/json2.js" 
+		<script src="/resoure/js/JSON-js/json2.js" 
 		 type="text/javascript"></script>
-		<script src="./resoure/js/bael_test.js" 
+		<script src="/resoure/js/bael_test.js" 
 		 type="text/javascript"></script>
 	</head>
 	<body>

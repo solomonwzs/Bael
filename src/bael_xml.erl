@@ -1,6 +1,6 @@
 -module(bael_xml).
 -include("bael.hrl").
--export([get_elements/2]).
+-export([get_elements/2, get_elements/3]).
 	
 -define(MATH_XML_ELEMENTS_LIST, bael_xml_dict_key_0).
 -define(TEST_XML_STRING, "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>

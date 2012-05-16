@@ -1,5 +1,6 @@
 -module(bael_common_func).
--export([thing_to_binary/1, to_lower_case/1]).
+-export([thing_to_binary/1, to_lower_case/1, time_string/0, time_string/1,
+		string_split/2]).
 
 thing_to_binary(Thing)->
 	if
@@ -18,3 +19,24 @@ to_lower_case(String)->
 		end
 	end,
 	lists:map(F, String).
+
+time_string()->
+	time_string(now()).
+time_string({MegaSecs, Secs, MicroSecs})->
+	time_string(calendar:now_to_local_time({MegaSecs, Secs, MicroSecs}));
+time_string(Time)->
+	{{Year, Month, Day}, {Hour, Minute, Second}}=Time,
+	lists:concat([Year, "-", Month, "-", Day, " ", Hour, ":", Minute, ":",
+		Second]).
+
+string_split([SplitChar], String)->
+	Func=fun(T)->
+		T=/=SplitChar
+	end,
+	{List1, List2}=lists:splitwith(Func, String),
+	case List2 of
+		[]->
+			[List1];
+		[_|Tail]->
+			[List1|string_split([SplitChar], Tail)]
+	end.
