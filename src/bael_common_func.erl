@@ -1,6 +1,6 @@
 -module(bael_common_func).
 -export([thing_to_binary/1, to_lower_case/1, time_string/0, time_string/1,
-		string_split/2]).
+		string_split/2, thing_to_list/1, dict_html_encode/1]).
 
 thing_to_binary(Thing)->
 	if
@@ -9,6 +9,16 @@ thing_to_binary(Thing)->
 		is_list(Thing)->list_to_binary(Thing);
 		is_tuple(Thing)->list_to_binary(tuple_to_list(Thing));
 		true-> <<>>
+	end.
+
+thing_to_list(Thing)->
+	if
+		is_list(Thing)->Thing;
+		is_integer(Thing)->integer_to_list(Thing);
+		is_float(Thing)->float_to_list(Thing);
+		is_binary(Thing)->binary_to_list(Thing);
+		is_tuple(Thing)->tuple_to_list(Thing);
+		true->[]
 	end.
 
 to_lower_case(String)->
@@ -40,3 +50,13 @@ string_split([SplitChar], String)->
 		[_|Tail]->
 			[List1|string_split([SplitChar], Tail)]
 	end.
+
+dict_html_encode(Dict)->
+	Func0=fun(X)->
+		String=thing_to_list(X),
+		[mochiweb_html:escape(String)]
+	end,
+	Func1=fun(Key, D)->
+		dict:update(Key, Func0, D)
+	end,
+	lists:foldl(Func1, Dict, dict:fetch_keys(Dict)).
