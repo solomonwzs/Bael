@@ -1,10 +1,11 @@
+JQ_UI_VER=1.8.20
 
 PREFIX:=../
 DEST:=$(PREFIX)$(PROJECT)
 
 REBAR=./rebar
 
-all:js
+all:
 	@$(REBAR) get-deps compile
 
 edoc:
@@ -17,6 +18,10 @@ test:
 
 clean:
 	@$(REBAR) clean
+	-rm -rf ./deps/*
+	-rm ./priv/www/resoure/js/jquery/jquery.min.js
+	-rm -rf ./priv/www/resoure/js/JSON-js
+	-rm -rf ./priv/www/resoure/js/jquery-ui/
 
 build_plt:
 	@$(REBAR) build-plt
@@ -32,3 +37,11 @@ js:
 		-P ./priv/www/resoure/js/jquery/
 	-git clone git://github.com/douglascrockford/JSON-js.git \
 		./priv/www/resoure/js/JSON-js
+	@wget -nc http://jqueryui.com/download/jquery-ui-$(JQ_UI_VER).custom.zip\
+		-P ./priv/www/resoure/js/jquery-ui/
+	@unzip ./priv/www/resoure/js/jquery-ui/jquery-ui-$(JQ_UI_VER).custom.zip\
+		-d ./priv/www/resoure/js/jquery-ui/
+	@rm ./priv/www/resoure/js/jquery-ui/jquery-ui-$(JQ_UI_VER).custom.zip
+
+rebuild:clean js
+	@$(REBAR) get-deps compile

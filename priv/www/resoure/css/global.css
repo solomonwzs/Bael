@@ -73,7 +73,7 @@ input[type="text"], input[type="password"], textarea
 	border:solid 1px #cacaca;
 	padding:3px;
 }
-.bael_whiteBtn, .bael_whiteBtnR
+.bael_whiteBtn, .bael_whiteBtnR, .bael_whiteBtnS
 {
 	background:-moz-linear-gradient(top,
 		rgba(250, 250, 250, 1) 0%,
@@ -99,6 +99,10 @@ input[type="text"], input[type="password"], textarea
 	border-radius:3px;
 	text-shadow:1px 1px 0 #fff;
 }
+.bael_whiteBtnS
+{
+	padding:2px 10px;
+}
 .bael_whiteBtn:hover
 {
 	background:-moz-linear-gradient(top,
@@ -115,6 +119,7 @@ input[type="text"], input[type="password"], textarea
 		rgba(52, 118, 183, 1) 100%);
 	color:#eee;
 	text-shadow:1px 1px 0 #5799da;
+	border-color:#518cc6 #518cc6 #2a65a0;
 }
 .bael_whiteBtnR:hover
 {
@@ -132,6 +137,7 @@ input[type="text"], input[type="password"], textarea
 		rgba(187, 12, 45, 1) 100%);
 	color:#eee;
 	text-shadow:1px 1px 0 #e22c45;
+	border-color:#e22c45 #e22c45 #bb0c2d;
 }
 .bael_center
 {
@@ -141,37 +147,37 @@ input[type="text"], input[type="password"], textarea
 {
 	width:1000px;
 }
-.bael_top, .bael_header, .bael_main, .bael_bottom, .bael_main_left, 
-.bael_main_right
+.bael_top, .bael_header, .bael_main, .bael_bottom, .bael_mainLeft, 
+.bael_mainRight
 {
 	float:left;
 }
-.bael_main_left
+.bael_mainLeft
 {
 	width:700px;
 }
-.bael_main_left *
+.bael_mainLeft *
 {
 	float:left;
 }
-.bael_main_right
+.bael_mainRight
 {
 	width:295px;
 	margin-left:5px;
 }
-.bael_main_left .bael_main_windows
+.bael_mainLeft .bael_mainWindow
 {
 	width:694px;
 }
-.bael_main_right .bael_main_windows
+.bael_mainRight .bael_mainWindow
 {
 	width:289px;
 }
-.bael_main .bael_main_windows
+.bael_main .bael_mainWindow
 {
 	width:994px;
 }
-.bael_main_windows
+.bael_mainWindow
 {
 	background:#efefef;
 	padding:3px;
@@ -212,6 +218,7 @@ input[type="text"], input[type="password"], textarea
 	font-size:25px;
 	font-weight:bold;
 	float:left;
+	text-shadow:0px 1px 0px #fff;
 }
 .bael_title
 {
@@ -251,7 +258,8 @@ input[type="text"], input[type="password"], textarea
 	font-weight:bold;
 	font-size:14px;
 }
-.bael_main_left .bael_title
+.bael_mainLeft .bael_title,
+.bael_mainLeft .bael_content
 {
 	width:672px;
 }
@@ -261,6 +269,11 @@ input[type="text"], input[type="password"], textarea
 	border-top:none;
 	background:#fff;
 	padding:10px;
+}
+.bael_mainRight .bael_title,
+.bael_mainRight .bael_content
+{
+	width:267px;
 }
 .bael_subTitle
 {
@@ -275,6 +288,19 @@ input[type="text"], input[type="password"], textarea
 .bael_subTitle span
 {
 	padding:2px 0px;
+}
+.bael_mainLeft .bael_mwL2
+{
+	width:327px;
+}
+.bael_mainLeft .bael_tL2,
+.bael_mainLeft .bael_cL2
+{
+	width:305px;
+}
+.bael_mainLeft .bael_tL2
+{
+	padding:5px 10px;
 }
 .bael_simpleTableView
 {
