@@ -1,6 +1,6 @@
 -module(bael_common_func).
 -export([thing_to_binary/1, to_lower_case/1, time_string/0, time_string/1,
-		string_split/2, thing_to_list/1, dict_html_encode/1]).
+		string_split/2, thing_to_list/1, dict_html_encode/1, timestamp/0]).
 
 thing_to_binary(Thing)->
 	if
@@ -60,3 +60,7 @@ dict_html_encode(Dict)->
 		dict:update(Key, Func0, D)
 	end,
 	lists:foldl(Func1, Dict, dict:fetch_keys(Dict)).
+
+timestamp()->
+	{MegaSecs, Secs, MicroSecs}=now(),
+	MegaSecs*1000000000000+Secs*1000000+MicroSecs.

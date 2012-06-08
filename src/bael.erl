@@ -28,6 +28,7 @@ start() ->
 	mnesia:create_schema([node()]),
 	ensure_started(mnesia),
 	init_db_conn(),
+	ensure_started(mongodb),
     application:start(bael).
 
 
@@ -38,6 +39,7 @@ stop() ->
 	application:stop(mnesia),
 	mnesia:delete_schema([node()]),
 	application:stop(odbc),
+	application:stop(mongodb),
     application:stop(emysql),
 	application:stop(inets).
     
